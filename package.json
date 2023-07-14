@@ -1,6 +1,6 @@
 {
   "name": "stripe-to-zod",
-  "description": "A simple tool to generate zod schemas from stripe openapi specs",
+  "description": "A minimal project for generating Zod Schemas from Stripe OpenAPI spec",
   "version": "1.0.0",
   "author": "",
   "devDependencies": {
@@ -15,8 +15,7 @@
   "keywords": [],
   "license": "ISC",
   "main": "src/index.ts",
-  "peerDependencies": {
-    "tslib": "^2.6.0",
+  "dependencies": {
     "zod": "3.21.4"
   },
   "scripts": {
