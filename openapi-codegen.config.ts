@@ -1,6 +1,7 @@
 import { generateSchemaTypes } from "@openapi-codegen/typescript";
 import { defineConfig } from "@openapi-codegen/cli";
-export default defineConfig({
+
+const config = defineConfig({
   stripe: {
     from: {
       source: "url",
@@ -14,3 +15,5 @@ export default defineConfig({
     },
   },
 });
+
+export default config;

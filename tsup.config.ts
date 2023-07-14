@@ -1,6 +1,6 @@
 import { defineConfig } from "tsup";
 
-export default defineConfig({
+const config = defineConfig({
   entry: ["src/index.ts"],
   splitting: false,
   treeshake: false,
@@ -13,3 +13,5 @@ export default defineConfig({
   target: "es2020",
   external: ["zod"],
 });
+
+export default config;
