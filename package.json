@@ -1,0 +1,29 @@
+{
+  "name": "stripe-to-zod",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "rm -rf dist/ && tsc",
+    "openapi-codegen": "openapi-codegen",
+    "clean": "rm -rf node_modules/ dist/ pnpm-lock.yaml && pnpm i",
+    "start": "pnpm run build && node dist/index.js",
+    "gen:specs": "openapi-codegen gen stripe",
+    "gen:zod": "ts-to-zod"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@openapi-codegen/cli": "^1.6.0",
+    "@openapi-codegen/typescript": "^3.0.1",
+    "ts-to-zod": "^1.13.1",
+    "tslib": "^2.6.0",
+    "zod": "3.21.4"
+  },
+  "devDependencies": {
+    "@types/node": "^16.18.38",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.6"
+  }
+}
