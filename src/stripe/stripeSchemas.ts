@@ -4081,7 +4081,7 @@ export type CustomerCashBalanceTransaction = {
   object: "customer_cash_balance_transaction";
   refunded_from_payment?: CustomerBalanceResourceCashBalanceTransactionResourceRefundedFromPaymentTransaction;
   /*
-   * The type of the cash balance transaction. One of `applied_to_payment`, `unapplied_from_payment`, `refunded_from_payment`, `funded`, `return_initiated`, or `return_canceled`. New types may be added in future. See [Customer Balance](https://stripe.com/docs/payments/customer-balance#types) to learn more about these types.
+   * The type of the cash balance transaction. New types may be added in future. See [Customer Balance](https://stripe.com/docs/payments/customer-balance#types) to learn more about these types.
    */
   type:
     | "applied_to_payment"
