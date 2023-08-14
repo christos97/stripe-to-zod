@@ -18,6 +18,7 @@ import {
   CreditNote,
   CreditNoteLineItem,
   Customer,
+  CustomerBalanceResourceCashBalanceTransactionResourceAdjustedForOverdraft,
   CustomerBalanceResourceCashBalanceTransactionResourceAppliedToPaymentTransaction,
   CustomerBalanceResourceCashBalanceTransactionResourceRefundedFromPaymentTransaction,
   CustomerBalanceResourceCashBalanceTransactionResourceUnappliedFromPaymentTransaction,
@@ -278,6 +279,11 @@ export const accountLinkSchema = z.object({
   expires_at: z.number(),
   object: z.literal("account_link"),
   url: z.string(),
+});
+
+export const accountMonthlyEstimatedRevenueSchema = z.object({
+  amount: z.number(),
+  currency: z.string(),
 });
 
 export const accountPaymentsSettingsSchema = z.object({
@@ -2547,7 +2553,6 @@ export const paymentIntentPaymentMethodOptionsEpsSchema = z.object({
 
 export const paymentIntentPaymentMethodOptionsLinkSchema = z.object({
   capture_method: z.literal("manual").optional(),
-  persistent_token: z.string().optional().nullable(),
   setup_future_usage: z
     .union([z.literal("none"), z.literal("off_session")])
     .optional(),
@@ -2597,6 +2602,9 @@ export const paymentIntentPaymentMethodOptionsSepaDebitSchema = z.object({
 
 export const paymentIntentPaymentMethodOptionsUsBankAccountSchema = z.object({
   financial_connections: linkedAccountOptionsUsBankAccountSchema.optional(),
+  preferred_settlement_speed: z
+    .union([z.literal("fastest"), z.literal("standard")])
+    .optional(),
   setup_future_usage: z
     .union([
       z.literal("none"),
@@ -3462,7 +3470,6 @@ export const paymentMethodKonbiniSchema = z.object({});
 
 export const paymentMethodLinkSchema = z.object({
   email: z.string().optional().nullable(),
-  persistent_token: z.string().optional(),
 });
 
 export const paymentMethodOptionsAffirmSchema = z.object({
@@ -4509,9 +4516,7 @@ export const setupIntentPaymentMethodOptionsCardMandateOptionsSchema = z.object(
   }
 );
 
-export const setupIntentPaymentMethodOptionsLinkSchema = z.object({
-  persistent_token: z.string().optional().nullable(),
-});
+export const setupIntentPaymentMethodOptionsLinkSchema = z.object({});
 
 export const setupIntentPaymentMethodOptionsMandateOptionsAcssDebitSchema = z.object(
   {
@@ -4924,6 +4929,10 @@ export const subscriptionBillingThresholdsSchema = z.object({
   reset_billing_cycle_anchor: z.boolean().optional().nullable(),
 });
 
+export const subscriptionDetailsDataSchema = z.object({
+  metadata: z.record(z.string()).optional().nullable(),
+});
+
 export const subscriptionItemBillingThresholdsSchema = z.object({
   usage_gte: z.number().optional().nullable(),
 });
@@ -5225,6 +5234,7 @@ export const taxRateSchema = z.object({
       z.literal("qst"),
       z.literal("rst"),
       z.literal("sales_tax"),
+      z.literal("service_tax"),
       z.literal("vat"),
     ])
     .optional(),
@@ -5279,6 +5289,10 @@ export const terminalReaderReaderResourceLineItemSchema = z.object({
   quantity: z.number(),
 });
 
+export const terminalReaderReaderResourceProcessSetupConfigSchema = z.object(
+  {}
+);
+
 export const terminalReaderReaderResourceTippingConfigSchema = z.object({
   amount_eligible: z.number().optional(),
 });
@@ -5299,6 +5313,36 @@ export const testHelpersTestClockSchema = z.object({
 });
 
 export const threeDSecureDetailsSchema = z.object({
+  authentication_flow: z
+    .union([z.literal("challenge"), z.literal("frictionless")])
+    .optional(),
+  result: z
+    .union([
+      z.literal("attempt_acknowledged"),
+      z.literal("authenticated"),
+      z.literal("exempted"),
+      z.literal("failed"),
+      z.literal("not_supported"),
+      z.literal("processing_error"),
+    ])
+    .optional(),
+  result_reason: z
+    .union([
+      z.literal("abandoned"),
+      z.literal("bypassed"),
+      z.literal("canceled"),
+      z.literal("card_not_enrolled"),
+      z.literal("network_not_supported"),
+      z.literal("protocol_error"),
+      z.literal("rejected"),
+    ])
+    .optional(),
+  version: z
+    .union([z.literal("1.0.2"), z.literal("2.1.0"), z.literal("2.2.0")])
+    .optional(),
+});
+
+export const threeDSecureDetailsChargeSchema = z.object({
   authentication_flow: z
     .union([z.literal("challenge"), z.literal("frictionless")])
     .optional(),
@@ -5606,6 +5650,7 @@ export const webhookEndpointSchema = z.object({
 
 export const accountBusinessProfileSchema = z.object({
   mcc: z.string().optional().nullable(),
+  monthly_estimated_revenue: accountMonthlyEstimatedRevenueSchema.optional(),
   name: z.string().optional().nullable(),
   product_description: z.string().optional().nullable(),
   support_address: addressSchema.optional().nullable(),
@@ -7386,8 +7431,6 @@ export const lineItemsTaxAmountSchema = z.object({
   taxability_reason: z
     .union([
       z.literal("customer_exempt"),
-      z.literal("excluded_territory"),
-      z.literal("jurisdiction_unsupported"),
       z.literal("not_collecting"),
       z.literal("not_subject_to_tax"),
       z.literal("not_supported"),
@@ -7401,7 +7444,6 @@ export const lineItemsTaxAmountSchema = z.object({
       z.literal("reverse_charge"),
       z.literal("standard_rated"),
       z.literal("taxable_basis_reduced"),
-      z.literal("vat_exempt"),
       z.literal("zero_rated"),
     ])
     .optional(),
@@ -7858,7 +7900,9 @@ export const radarValueListSchema = z.object({
     z.literal("customer_id"),
     z.literal("email"),
     z.literal("ip_address"),
+    z.literal("sepa_debit_fingerprint"),
     z.literal("string"),
+    z.literal("us_bank_account_fingerprint"),
   ]),
   list_items: z.object({
     data: z.array(radarValueListItemSchema),
@@ -8345,7 +8389,7 @@ export const paymentMethodDetailsCardSchema = z.object({
   network_token: paymentMethodDetailsCardNetworkTokenSchema
     .optional()
     .nullable(),
-  three_d_secure: threeDSecureDetailsSchema.optional().nullable(),
+  three_d_secure: threeDSecureDetailsChargeSchema.optional().nullable(),
   wallet: paymentMethodDetailsCardWalletSchema.optional().nullable(),
 });
 
@@ -9264,6 +9308,7 @@ export const balanceTransactionSchema: z.ZodSchema<BalanceTransaction> = z.lazy(
         z.literal("payment"),
         z.literal("payment_failure_refund"),
         z.literal("payment_refund"),
+        z.literal("payment_reversal"),
         z.literal("payout"),
         z.literal("payout_cancel"),
         z.literal("payout_failure"),
@@ -9781,6 +9826,16 @@ export const customerSchema: z.ZodSchema<Customer> = z.lazy(() =>
   })
 );
 
+export const customerBalanceResourceCashBalanceTransactionResourceAdjustedForOverdraftSchema: z.ZodSchema<CustomerBalanceResourceCashBalanceTransactionResourceAdjustedForOverdraft> = z.lazy(
+  () =>
+    z.object({
+      linked_transaction: z.union([
+        z.string(),
+        customerCashBalanceTransactionSchema,
+      ]),
+    })
+);
+
 export const customerBalanceResourceCashBalanceTransactionResourceAppliedToPaymentTransactionSchema: z.ZodSchema<CustomerBalanceResourceCashBalanceTransactionResourceAppliedToPaymentTransaction> = z.lazy(
   () =>
     z.object({
@@ -9838,6 +9893,7 @@ export const customerBalanceTransactionSchema: z.ZodSchema<CustomerBalanceTransa
 export const customerCashBalanceTransactionSchema: z.ZodSchema<CustomerCashBalanceTransaction> = z.lazy(
   () =>
     z.object({
+      adjusted_for_overdraft: customerBalanceResourceCashBalanceTransactionResourceAdjustedForOverdraftSchema.optional(),
       applied_to_payment: customerBalanceResourceCashBalanceTransactionResourceAppliedToPaymentTransactionSchema.optional(),
       created: z.number(),
       currency: z.string(),
@@ -9850,6 +9906,7 @@ export const customerCashBalanceTransactionSchema: z.ZodSchema<CustomerCashBalan
       object: z.literal("customer_cash_balance_transaction"),
       refunded_from_payment: customerBalanceResourceCashBalanceTransactionResourceRefundedFromPaymentTransactionSchema.optional(),
       type: z.union([
+        z.literal("adjusted_for_overdraft"),
         z.literal("applied_to_payment"),
         z.literal("funded"),
         z.literal("funding_reversed"),
@@ -10294,6 +10351,7 @@ export const invoiceSchema: z.ZodSchema<Invoice> = z.lazy(() =>
       .union([z.string(), subscriptionSchema])
       .optional()
       .nullable(),
+    subscription_details: subscriptionDetailsDataSchema.optional().nullable(),
     subscription_proration_date: z.number().optional(),
     subtotal: z.number(),
     subtotal_excluding_tax: z.number().optional().nullable(),
@@ -10794,6 +10852,7 @@ export const legalEntityCompanySchema: z.ZodSchema<LegalEntityCompany> = z.lazy(
           z.literal("government_instrumentality"),
           z.literal("governmental_unit"),
           z.literal("incorporated_non_profit"),
+          z.literal("incorporated_partnership"),
           z.literal("limited_liability_partnership"),
           z.literal("llc"),
           z.literal("multi_member_llc"),
@@ -10809,6 +10868,7 @@ export const legalEntityCompanySchema: z.ZodSchema<LegalEntityCompany> = z.lazy(
           z.literal("tax_exempt_government_instrumentality"),
           z.literal("unincorporated_association"),
           z.literal("unincorporated_non_profit"),
+          z.literal("unincorporated_partnership"),
         ])
         .optional(),
       tax_id_provided: z.boolean().optional(),
@@ -12593,6 +12653,7 @@ export const terminalReaderReaderResourceProcessSetupIntentActionSchema: z.ZodSc
   () =>
     z.object({
       generated_card: z.string().optional(),
+      process_config: terminalReaderReaderResourceProcessSetupConfigSchema.optional(),
       setup_intent: z.union([z.string(), setupIntentSchema]),
     })
 );
